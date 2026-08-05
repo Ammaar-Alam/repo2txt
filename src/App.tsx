@@ -404,6 +404,22 @@ function App() {
       {/* Main Content */}
       <main className="flex-1 container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 md:py-8">
         <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 md:space-y-8">
+          <section
+            className="mx-auto max-w-3xl space-y-2 text-center"
+            aria-labelledby="repo2txt-intro-heading"
+          >
+            <h2
+              id="repo2txt-intro-heading"
+              className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100"
+            >
+              Convert repositories to plain text for LLMs
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 text-balance">
+              Turn GitHub, GitLab, Azure DevOps, local folders, or ZIP files into clean, copy-ready
+              context for AI tools—entirely in your browser.
+            </p>
+          </section>
+
           {/* Provider Selection */}
           <section>
             <ProviderSelector

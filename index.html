@@ -2,18 +2,80 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/gitcat.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>repo2txt - Convert Repositories to Plain Text</title>
-    <meta name="description" content="Convert GitHub repositories or local directories to plain text for LLM prompts. Fast, browser-based tool for AI-assisted development." />
-    <meta name="keywords" content="GitHub, repository, plain text, LLM, AI, code converter, developer tools" />
+    <title>repo2txt: Convert Repositories to Text for LLMs</title>
+    <meta
+      name="description"
+      content="Convert GitHub, GitLab, Azure DevOps, local folders, and ZIP files into plain text for LLM prompts. Free, open-source, and processed in your browser."
+    />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
     <meta name="author" content="Abin Thomas" />
+    <meta name="application-name" content="repo2txt" />
+    <meta name="theme-color" content="#0f172a" />
 
-    <!-- Open Graph / Social Media -->
-    <meta property="og:title" content="repo2txt - Convert Repositories to Plain Text" />
-    <meta property="og:description" content="Convert GitHub repositories or local directories to plain text for LLM prompts" />
+    <link rel="canonical" href="https://abinthomas.in/repo2txt/" />
+    <link rel="icon" type="image/svg+xml" sizes="any" href="/gitcat.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://abinthomas.in/repo2txt/" />
+    <meta property="og:site_name" content="repo2txt" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content="repo2txt: Convert Repositories to Text for LLMs" />
+    <meta
+      property="og:description"
+      content="Turn GitHub, GitLab, Azure DevOps, local folders, and ZIP files into plain text for LLM prompts—entirely in your browser."
+    />
+    <meta property="og:image" content="https://abinthomas.in/repo2txt/og-repo2txt.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="repo2txt — Convert repositories to plain text for LLMs"
+    />
+
+    <!-- X / Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="repo2txt: Convert Repositories to Text for LLMs" />
+    <meta
+      name="twitter:description"
+      content="Turn repositories and local projects into plain text for LLM prompts—entirely in your browser."
+    />
+    <meta name="twitter:image" content="https://abinthomas.in/repo2txt/og-repo2txt.jpg" />
+    <meta
+      name="twitter:image:alt"
+      content="repo2txt — Convert repositories to plain text for LLMs"
+    />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "repo2txt",
+        "url": "https://abinthomas.in/repo2txt/",
+        "description": "Convert repositories and local projects into plain text for LLM prompts in your browser.",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript and a modern web browser.",
+        "isAccessibleForFree": true,
+        "image": "https://abinthomas.in/repo2txt/og-repo2txt.jpg",
+        "codeRepository": "https://github.com/abinthomasonline/repo2txt",
+        "author": {
+          "@type": "Person",
+          "name": "Abin Thomas",
+          "url": "https://abinthomas.in/"
+        }
+      }
+    </script>
 
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-CYF86LN5WM"></script>
