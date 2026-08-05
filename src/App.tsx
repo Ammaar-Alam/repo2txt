@@ -7,8 +7,7 @@ import { FileTree } from '@/components/file-tree';
 import { OutputPanel } from '@/components/OutputPanel';
 import { PaperPmfPromo } from '@/components/PaperPmfPromo';
 import { ProviderError } from '@/lib/providers/types';
-import { GitHubProvider } from '@/features/github';
-import { Formatter } from '@/lib/formatter';
+import { GitHubProvider } from '@/features/github/GitHubProvider';
 import { buildTree, extractDirectories } from '@/lib/tree-builder';
 import {
   extractGitHubRepoName,
@@ -171,7 +170,7 @@ function App() {
     setRepoName(extractGitLabRepoName(url));
 
     // Dynamically import GitLab provider (code splitting)
-    const { GitLabProvider } = await import('@/features/gitlab');
+    const { GitLabProvider } = await import('@/features/gitlab/GitLabProvider');
     const provider = new GitLabProvider();
     // Get GitLab token from sessionStorage if available
     const token = sessionStorage.getItem('gitlab_token');
@@ -189,7 +188,7 @@ function App() {
     setRepoName(extractAzureRepoName(url));
 
     // Dynamically import Azure provider (code splitting)
-    const { AzureDevOpsProvider } = await import('@/features/azure');
+    const { AzureDevOpsProvider } = await import('@/features/azure/AzureDevOpsProvider');
     const provider = new AzureDevOpsProvider();
     // Get Azure token from sessionStorage if available
     const token = sessionStorage.getItem('azure_token');
@@ -206,7 +205,7 @@ function App() {
     setRepoName(extractLocalName(files));
 
     // Dynamically import Local provider (code splitting)
-    const { LocalProvider } = await import('@/features/local');
+    const { LocalProvider } = await import('@/features/local/LocalProvider');
     const provider = new LocalProvider();
     await provider.initialize({ source: 'directory', files });
 
@@ -222,7 +221,7 @@ function App() {
     setRepoName(extractLocalName(file));
 
     // Dynamically import Local provider (code splitting)
-    const { LocalProvider } = await import('@/features/local');
+    const { LocalProvider } = await import('@/features/local/LocalProvider');
     const provider = new LocalProvider();
     await provider.initialize({ source: 'zip', zipFile: file });
 
@@ -318,6 +317,10 @@ function App() {
         expandedPaths: allDirPaths, // All directories expanded for output
         getDirectorySelectionState,
       });
+
+      // Load the tokenizer only when output is requested. Its vocabulary is the
+      // largest application dependency and is not needed during initial page load.
+      const { Formatter } = await import('@/lib/formatter');
 
       // Format output with full tree (using async Web Worker for better performance)
       const formattedOutput = await Formatter.formatAsync(

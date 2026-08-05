@@ -3,7 +3,7 @@
  * Supports directory uploads and zip files
  */
 
-import JSZip from 'jszip';
+import type JSZip from 'jszip';
 import { BaseProvider } from '@/lib/providers/BaseProvider';
 import { ProviderError, ErrorCode } from '@/lib/providers/types';
 import type { ParsedRepoInfo } from '@/lib/providers/types';
@@ -214,6 +214,9 @@ export class LocalProvider extends BaseProvider {
   ): Promise<void> {
     try {
       onProgress?.(0, 'Reading zip file...');
+
+      // Keep ZIP parsing out of directory-only sessions and the initial bundle.
+      const { default: JSZip } = await import('jszip');
 
       this.zipInstance = await JSZip.loadAsync(zipFile, {
         createFolders: false,

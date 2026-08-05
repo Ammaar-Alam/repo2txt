@@ -3,12 +3,36 @@
  * Allows switching between GitHub and Local providers
  */
 
-import { useState } from 'react';
-import { GitHubForm } from '@/features/github';
-import { GitLabForm } from '@/features/gitlab';
-import { AzureForm } from '@/features/azure';
-import { LocalForm } from '@/features/local';
+import { lazy, Suspense, useState } from 'react';
+import { GitHubForm } from '@/features/github/components/GitHubForm';
 import type { ProviderType } from '@/types';
+
+const LocalForm = lazy(() =>
+  import('@/features/local/components/LocalForm').then((module) => ({
+    default: module.LocalForm,
+  }))
+);
+const GitLabForm = lazy(() =>
+  import('@/features/gitlab/components/GitLabForm').then((module) => ({
+    default: module.GitLabForm,
+  }))
+);
+const AzureForm = lazy(() =>
+  import('@/features/azure/components/AzureForm').then((module) => ({
+    default: module.AzureForm,
+  }))
+);
+
+function ProviderFormFallback() {
+  return (
+    <div
+      className="flex min-h-32 items-center justify-center text-sm text-gray-500 dark:text-gray-400"
+      role="status"
+    >
+      Loading converter…
+    </div>
+  );
+}
 
 interface ProviderSelectorProps {
   onGitHubSubmit?: (url: string) => void;
@@ -136,20 +160,22 @@ export function ProviderSelector({
 
       {/* Provider form */}
       <div className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 sm:p-6">
-        {activeProvider === 'github' ? (
-          <GitHubForm onSubmit={onGitHubSubmit} disabled={disabled} />
-        ) : activeProvider === 'local' ? (
-          <LocalForm
-            onDirectorySelected={onLocalDirectorySubmit}
-            onZipSelected={onLocalZipSubmit}
-            onTabChange={() => onProviderChange?.('local')}
-            disabled={disabled}
-          />
-        ) : activeProvider === 'gitlab' ? (
-          <GitLabForm onSubmit={onGitLabSubmit} disabled={disabled} />
-        ) : (
-          <AzureForm onSubmit={onAzureSubmit} disabled={disabled} />
-        )}
+        <Suspense fallback={<ProviderFormFallback />}>
+          {activeProvider === 'github' ? (
+            <GitHubForm onSubmit={onGitHubSubmit} disabled={disabled} />
+          ) : activeProvider === 'local' ? (
+            <LocalForm
+              onDirectorySelected={onLocalDirectorySubmit}
+              onZipSelected={onLocalZipSubmit}
+              onTabChange={() => onProviderChange?.('local')}
+              disabled={disabled}
+            />
+          ) : activeProvider === 'gitlab' ? (
+            <GitLabForm onSubmit={onGitLabSubmit} disabled={disabled} />
+          ) : (
+            <AzureForm onSubmit={onAzureSubmit} disabled={disabled} />
+          )}
+        </Suspense>
       </div>
     </div>
   );

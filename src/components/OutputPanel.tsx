@@ -4,7 +4,6 @@
  */
 
 import { useState } from 'react';
-import JSZip from 'jszip';
 import { Button } from './ui/Button';
 import { FileStats } from './FileStats';
 import type { FormattedOutput } from '@/types';
@@ -43,6 +42,9 @@ export function OutputPanel({ output, isLoading = false, repoName = 'repo-export
       const fullText = `${output.directoryTree}\n\n${output.fileContents}`;
 
       if (downloadFormat === 'zip') {
+        // ZIP support is only needed when the user explicitly chooses that format.
+        const { default: JSZip } = await import('jszip');
+
         // Create ZIP file
         const zip = new JSZip();
 
