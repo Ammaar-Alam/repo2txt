@@ -136,6 +136,14 @@ describe('GitHubProvider', () => {
       expect(result.repo).toBe('repo');
     });
 
+    it('should keep a branch or path that ends in .git', () => {
+      const branch = provider.parseUrl('https://github.com/owner/repo/tree/release.git');
+      expect(branch.branch).toBe('release.git');
+
+      const path = provider.parseUrl('https://github.com/owner/repo/tree/main/vendor/foo.git');
+      expect(path.branch).toBe('main/vendor/foo.git');
+    });
+
     it('should parse an ssh remote', () => {
       const result = provider.parseUrl('git@github.com:owner/repo.git');
 
@@ -303,6 +311,22 @@ describe('GitHubProvider', () => {
         http.get('https://api.github.com/repos/:owner/:repo/contents', () => {
           attempts += 1;
           return HttpResponse.json({ message: 'Bad credentials' }, { status: 401 });
+        })
+      );
+
+      await expect(provider.fetchTree('https://github.com/owner/repo')).rejects.toThrow();
+      expect(attempts).toBe(1);
+    });
+
+    it('should not sit through a long Retry-After on a server error', async () => {
+      let attempts = 0;
+      server.use(
+        http.get('https://api.github.com/repos/:owner/:repo/contents', () => {
+          attempts += 1;
+          return HttpResponse.json(
+            { message: 'Service unavailable' },
+            { status: 503, headers: { 'retry-after': '3600' } }
+          );
         })
       );
 

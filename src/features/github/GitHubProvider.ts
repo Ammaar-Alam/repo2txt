@@ -49,7 +49,9 @@ export class GitHubProvider extends BaseProvider {
       ? normalized.replace(/^https?:\/\//i, 'https://')
       : `https://${normalized.replace(/^\/+/, '')}`;
 
-    return normalized.replace(/^https:\/\/www\./i, 'https://').replace(/\.git$/, '');
+    return normalized
+      .replace(/^https:\/\/www\./i, 'https://')
+      .replace(/^(https:\/\/github\.com\/[^/]+\/[^/]+)\.git$/i, '$1');
   }
 
   /**

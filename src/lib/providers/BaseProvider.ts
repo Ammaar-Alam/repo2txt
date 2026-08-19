@@ -202,9 +202,9 @@ export abstract class BaseProvider implements IProvider {
    * Server faults and short throttles are transient, client errors are not
    */
   protected isRetryable(error: HttpError): boolean {
-    if (error.status >= 500) return true;
+    // A wait the server asks for decides the matter, however the request failed
     if (error.retryAfterSeconds !== undefined) return error.retryAfterSeconds <= 10;
-    return error.status === 429;
+    return error.status >= 500 || error.status === 429;
   }
 
   /**
