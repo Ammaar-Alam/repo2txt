@@ -112,9 +112,38 @@ describe('GitHubProvider', () => {
       expect(provider.validateUrl('not-a-url')).toBe(false);
       expect(provider.validateUrl('')).toBe(false);
     });
+
+    it('should accept a URL without a scheme', () => {
+      expect(provider.validateUrl('github.com/owner/repo')).toBe(true);
+      expect(provider.validateUrl('www.github.com/owner/repo')).toBe(true);
+      expect(provider.validateUrl('github.com/owner/repo/tree/main')).toBe(true);
+    });
+
+    it('should accept http, ssh remotes, .git suffixes and stray whitespace', () => {
+      expect(provider.validateUrl('http://github.com/owner/repo')).toBe(true);
+      expect(provider.validateUrl('git@github.com:owner/repo.git')).toBe(true);
+      expect(provider.validateUrl('https://github.com/owner/repo.git')).toBe(true);
+      expect(provider.validateUrl('  github.com/owner/repo  ')).toBe(true);
+    });
   });
 
   describe('parseUrl', () => {
+    it('should parse a URL entered without a scheme', () => {
+      const result = provider.parseUrl('github.com/owner/repo');
+
+      expect(result.isValid).toBe(true);
+      expect(result.owner).toBe('owner');
+      expect(result.repo).toBe('repo');
+    });
+
+    it('should parse an ssh remote', () => {
+      const result = provider.parseUrl('git@github.com:owner/repo.git');
+
+      expect(result.isValid).toBe(true);
+      expect(result.owner).toBe('owner');
+      expect(result.repo).toBe('repo');
+    });
+
     it('should parse basic repo URL', () => {
       const result = provider.parseUrl('https://github.com/facebook/react');
 

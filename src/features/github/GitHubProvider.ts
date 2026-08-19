@@ -34,25 +34,43 @@ export class GitHubProvider extends BaseProvider {
   }
 
   /**
+   * Bring the shapes people paste into a single canonical form
+   * Covers a missing or plain http scheme, www, ssh remotes and .git suffixes
+   */
+  static normalizeUrl(url: string): string {
+    let normalized = url.trim().replace(/\/+$/, '');
+
+    const sshMatch = normalized.match(/^git@github\.com:(.+)$/i);
+    if (sshMatch) {
+      normalized = `https://github.com/${sshMatch[1]}`;
+    }
+
+    normalized = /^https?:\/\//i.test(normalized)
+      ? normalized.replace(/^https?:\/\//i, 'https://')
+      : `https://${normalized.replace(/^\/+/, '')}`;
+
+    return normalized.replace(/^https:\/\/www\./i, 'https://').replace(/\.git$/, '');
+  }
+
+  /**
    * Validate GitHub URL format
    */
   validateUrl(url: string): boolean {
-    const normalized = url.replace(/\/$/, ''); // Remove trailing slash
-    return GitHubProvider.URL_PATTERN.test(normalized);
+    return GitHubProvider.URL_PATTERN.test(GitHubProvider.normalizeUrl(url));
   }
 
   /**
    * Parse GitHub URL to extract repository information
    */
   parseUrl(url: string): ParsedRepoInfo {
-    const normalized = url.replace(/\/$/, '');
+    const normalized = GitHubProvider.normalizeUrl(url);
     const match = normalized.match(GitHubProvider.URL_PATTERN);
 
     if (!match) {
       return {
         url,
         isValid: false,
-        error: 'Invalid GitHub URL format. Expected: https://github.com/owner/repo',
+        error: 'Invalid GitHub URL format. Expected: github.com/owner/repo',
       };
     }
 
