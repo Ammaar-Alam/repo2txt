@@ -68,17 +68,22 @@ export function GitIgnoreEditor({
     setHasChanges(false);
   };
 
-  const handleAddSuggestion = (pattern: string) => {
-    const currentPatterns = patterns ? patterns + '\n' : '';
-    setPatterns(currentPatterns + pattern);
-    setHasChanges(true);
-  };
-
   const handleChange = (value: string) => {
     setPatterns(value);
     const patternsChanged = value !== initialPatterns.join('\n');
     const checkboxChanged = localShowExcluded !== showExcluded;
     setHasChanges(patternsChanged || checkboxChanged);
+  };
+
+  const handleToggleSuggestion = (pattern: string) => {
+    const lines = patterns.split('\n');
+    const isActive = lines.some((line) => line.trim() === pattern);
+
+    handleChange(
+      isActive
+        ? lines.filter((line) => line.trim() !== pattern).join('\n')
+        : [...(patterns.trim() ? [patterns.replace(/\n+$/, '')] : []), pattern].join('\n')
+    );
   };
 
   const handleCheckboxChange = (checked: boolean) => {
@@ -88,9 +93,9 @@ export function GitIgnoreEditor({
     setHasChanges(patternsChanged || checkboxChanged);
   };
 
-  const patternCount = patterns
-    .split('\n')
-    .filter((p) => p.trim() && !p.trim().startsWith('#')).length;
+  const patternLines = patterns.split('\n').map((p) => p.trim());
+  const patternCount = patternLines.filter((p) => p && !p.startsWith('#')).length;
+  const activePatterns = new Set(patternLines);
 
   return (
     <div className="space-y-3">
@@ -167,15 +172,24 @@ export function GitIgnoreEditor({
 
         {showSuggestions && (
           <div className="mt-2 grid grid-cols-2 gap-1">
-            {COMMON_PATTERNS.map((pattern) => (
-              <button
-                key={pattern}
-                onClick={() => handleAddSuggestion(pattern)}
-                className="rounded border border-gray-200 px-2 py-1 text-left font-mono text-xs text-gray-600 transition-colors hover:border-gray-300 hover:text-gray-900 dark:border-gray-800 dark:text-gray-400 dark:hover:border-gray-700 dark:hover:text-gray-100"
-              >
-                {pattern}
-              </button>
-            ))}
+            {COMMON_PATTERNS.map((pattern) => {
+              const isActive = activePatterns.has(pattern);
+
+              return (
+                <button
+                  key={pattern}
+                  onClick={() => handleToggleSuggestion(pattern)}
+                  aria-pressed={isActive}
+                  className={`rounded border px-2 py-1 text-left font-mono text-xs transition-colors ${
+                    isActive
+                      ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-300'
+                      : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900 dark:border-gray-800 dark:text-gray-400 dark:hover:border-gray-700 dark:hover:text-gray-100'
+                  }`}
+                >
+                  {pattern}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>

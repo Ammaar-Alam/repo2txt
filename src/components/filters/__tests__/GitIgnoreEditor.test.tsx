@@ -32,6 +32,35 @@ describe('GitIgnoreEditor', () => {
     expect(onApply).toHaveBeenCalledWith(['node_modules/', '*.log', '.env', 'dist/']);
   });
 
+  it('should add a common pattern once and remove it on a second click', async () => {
+    render(<GitIgnoreEditor patterns={[]} />);
+
+    await userEvent.click(screen.getByText('Common patterns'));
+    const suggestion = screen.getByRole('button', { name: 'dist/' });
+
+    await userEvent.click(suggestion);
+    const textarea = screen.getByPlaceholderText(/Enter gitignore patterns/) as HTMLTextAreaElement;
+    expect(textarea.value).toBe('dist/');
+    expect(suggestion).toHaveAttribute('aria-pressed', 'true');
+
+    await userEvent.click(suggestion);
+    expect(textarea.value).toBe('');
+    expect(suggestion).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('should keep existing patterns when toggling a suggestion', async () => {
+    render(<GitIgnoreEditor patterns={['node_modules/', '*.log']} />);
+
+    await userEvent.click(screen.getByText('Common patterns'));
+    await userEvent.click(screen.getByRole('button', { name: 'dist/' }));
+
+    const textarea = screen.getByPlaceholderText(/Enter gitignore patterns/) as HTMLTextAreaElement;
+    expect(textarea.value).toBe('node_modules/\n*.log\ndist/');
+
+    await userEvent.click(screen.getByRole('button', { name: '*.log' }));
+    expect(textarea.value).toBe('node_modules/\ndist/');
+  });
+
   it('should call onReset when Reset button is clicked', () => {
     const onReset = vi.fn();
     render(<GitIgnoreEditor patterns={mockPatterns} onReset={onReset} />);
