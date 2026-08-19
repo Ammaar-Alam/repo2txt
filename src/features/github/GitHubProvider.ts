@@ -4,7 +4,7 @@
  */
 
 import { BaseProvider } from '@/lib/providers/BaseProvider';
-import { ProviderError, ErrorCode } from '@/lib/providers/types';
+import { HttpError, ProviderError, ErrorCode } from '@/lib/providers/types';
 import type { ParsedRepoInfo } from '@/lib/providers/types';
 import type { ProviderType, FileNode, FetchOptions, FileContent } from '@/types';
 
@@ -326,37 +326,62 @@ export class GitHubProvider extends BaseProvider {
       return error;
     }
 
-    if (error instanceof Error) {
-      const message = error.message;
+    if (error instanceof HttpError && (error.status === 403 || error.status === 429)) {
+      const isQuotaExhausted =
+        error.status === 429 ||
+        error.rateLimitRemaining === 0 ||
+        error.retryAfterSeconds !== undefined ||
+        /rate limit/i.test(error.apiMessage || '');
 
-      // 403 on GitHub usually means rate limit (60 requests/hour for unauthenticated)
-      // or authentication required for private repos
-      if (message.includes('403')) {
+      // A private repository refusing an anonymous reader also answers 403
+      if (!isQuotaExhausted) {
         return new ProviderError(
-          message,
-          ErrorCode.RATE_LIMITED,
-          `GitHub API rate limit exceeded or authentication required${contextMsg}.
-
-Unauthenticated requests are limited to 60/hour. Please add a GitHub Personal Access Token to increase the limit to 5,000/hour.
-
-Click the GitHub icon in the authentication section above to add a token.`,
-          () => {
-            window.open('https://github.com/settings/tokens/new?description=repo2txt&scopes=repo', '_blank');
-          }
+          error.message,
+          ErrorCode.AUTH_FAILED,
+          `GitHub denied access${contextMsg}.${
+            error.apiMessage ? `\n\n${error.apiMessage}` : ''
+          }\n\nPrivate repositories need a Personal Access Token with repo scope.`,
+          this.openTokenPage
         );
       }
 
-      // 429 is explicit rate limiting
-      if (message.includes('429')) {
-        return new ProviderError(
-          message,
-          ErrorCode.RATE_LIMITED,
-          `GitHub API rate limit exceeded${contextMsg}. Please wait a moment and try again.`
-        );
-      }
+      const hasToken = Boolean(this.credentials?.token);
+      const quota = hasToken ? '5,000' : '60';
+      const resetsIn = error.rateLimitReset ? this.describeReset(error.rateLimitReset) : null;
+
+      return new ProviderError(
+        error.message,
+        ErrorCode.RATE_LIMITED,
+        `GitHub API rate limit reached${contextMsg}.
+
+Every file is fetched as its own API request, so a large repository can use the ${quota} requests per hour that ${
+          hasToken ? 'a token allows' : 'anonymous access allows'
+        }.${resetsIn ? ` The limit resets ${resetsIn}.` : ''}
+
+${
+  hasToken
+    ? 'Select fewer files, or wait for the limit to reset.'
+    : 'Add a Personal Access Token to raise the limit to 5,000 requests per hour, or select fewer files.'
+}`,
+        hasToken ? undefined : this.openTokenPage
+      );
     }
 
     // Use base class error handling for other errors
     return super.handleFetchError(error, context);
   }
+
+  /**
+   * Describe when a rate limit window reopens in terms a reader can act on
+   */
+  private describeReset(reset: Date): string {
+    const minutes = Math.max(1, Math.ceil((reset.getTime() - Date.now()) / 60000));
+    return minutes > 60
+      ? `at ${reset.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
+      : `in ${minutes} minute${minutes === 1 ? '' : 's'}`;
+  }
+
+  private openTokenPage = () => {
+    window.open('https://github.com/settings/tokens/new?description=repo2txt&scopes=repo', '_blank');
+  };
 }

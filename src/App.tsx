@@ -18,8 +18,24 @@ import {
   extractLocalName,
 } from '@/lib/utils/repoName';
 import { useStore } from '@/store';
-import type { FileNode, FileContent, ExtensionFilter as ExtensionFilterType, FormattedOutput } from '@/types';
+import type { FileNode, FileContent, ExtensionFilter as ExtensionFilterType, FormattedOutput, ProviderType } from '@/types';
 import type { IProvider } from '@/lib/providers/types';
+
+const TOKEN_STORAGE_KEYS: Partial<Record<ProviderType, string>> = {
+  github: 'github_token',
+  gitlab: 'gitlab_token',
+  azure: 'azure_token',
+};
+
+/**
+ * Tokens can be added or cleared after a repository is loaded, so the provider
+ * is given the stored token again before each round of requests
+ */
+function applyStoredCredentials(provider: IProvider, type: ProviderType) {
+  const storageKey = TOKEN_STORAGE_KEYS[type];
+  const token = storageKey ? sessionStorage.getItem(storageKey)?.trim() : undefined;
+  provider.setCredentials({ token: token || undefined });
+}
 
 function App() {
   const { setProviderType, setRepoUrl } = useStore();
@@ -156,11 +172,7 @@ function App() {
     setRepoName(extractGitHubRepoName(url));
 
     const provider = new GitHubProvider();
-    // Get GitHub token from sessionStorage if available
-    const token = sessionStorage.getItem('github_token');
-    if (token) {
-      provider.setCredentials({ token });
-    }
+    applyStoredCredentials(provider, 'github');
 
     await loadFiles(provider, url);
   }, [loadFiles, setProviderType, setRepoUrl]);
@@ -174,11 +186,7 @@ function App() {
     // Dynamically import GitLab provider (code splitting)
     const { GitLabProvider } = await import('@/features/gitlab/GitLabProvider');
     const provider = new GitLabProvider();
-    // Get GitLab token from sessionStorage if available
-    const token = sessionStorage.getItem('gitlab_token');
-    if (token) {
-      provider.setCredentials({ token });
-    }
+    applyStoredCredentials(provider, 'gitlab');
 
     await loadFiles(provider, url);
   }, [loadFiles, setProviderType, setRepoUrl]);
@@ -192,11 +200,7 @@ function App() {
     // Dynamically import Azure provider (code splitting)
     const { AzureDevOpsProvider } = await import('@/features/azure/AzureDevOpsProvider');
     const provider = new AzureDevOpsProvider();
-    // Get Azure token from sessionStorage if available
-    const token = sessionStorage.getItem('azure_token');
-    if (token) {
-      provider.setCredentials({ token });
-    }
+    applyStoredCredentials(provider, 'azure');
 
     await loadFiles(provider, url);
   }, [loadFiles, setProviderType, setRepoUrl]);
@@ -287,6 +291,7 @@ function App() {
 
     try {
       setIsLoading(true);
+      applyStoredCredentials(currentProvider, currentProvider.getType());
 
       // Get selected and non-excluded nodes from store
       const selectedNodes = getSelectedNodes();
