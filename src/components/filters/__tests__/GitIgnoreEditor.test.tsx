@@ -76,7 +76,7 @@ describe('GitIgnoreEditor', () => {
   it('should show common patterns when expanded', async () => {
     render(<GitIgnoreEditor patterns={[]} />);
 
-    const toggleButton = screen.getByText('Common Patterns');
+    const toggleButton = screen.getByText('Common patterns');
     await userEvent.click(toggleButton);
 
     expect(screen.getByText('node_modules/')).toBeInTheDocument();
@@ -86,7 +86,7 @@ describe('GitIgnoreEditor', () => {
   it('should add common pattern when clicked', async () => {
     render(<GitIgnoreEditor patterns={[]} />);
 
-    const toggleButton = screen.getByText('Common Patterns');
+    const toggleButton = screen.getByText('Common patterns');
     await userEvent.click(toggleButton);
 
     const patternButton = screen.getByText('node_modules/');
